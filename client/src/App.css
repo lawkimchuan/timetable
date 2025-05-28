@@ -23,7 +23,75 @@ li {
   margin: 0;
 }
 
+/* Style for calendar slot events */
 .rbc-event {
   cursor: grab;
   font-size: 1rem;
+  background: #1976d2 !important;
+  border-radius: 6px;
+  padding: 2px 6px;
+  border: none;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Style for the delete button inside the slot */
+.rbc-event button {
+  margin-left: 8px;
+  background: tomato;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0 6px;
+  font-size: 1.1em;
+  line-height: 1;
+  transition: background 0.2s;
+}
+
+.rbc-event button:hover {
+  background: #c0392b;
+}
+
+/* Slot timing */
+.rbc-event-label {
+  margin-top: 6px;
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+/* Style for each info div inside the calendar slot */
+.rbc-event .slot-info > div {
+  margin-bottom: 6px;
+  padding: 0 2px;
+}
+
+/* Task/title */
+.rbc-event .slot-task {
+  font-weight: 600;
+  font-size: 1.4em;
+  color: #ffffff;
+  display: inline-block;
+}
+
+/* Duration */
+.rbc-event .slot-duration {
+  font-size: 0.8em;
+  color: #ffd500;
+  display: inline-block;
+}
+
+/* Location */
+.rbc-event .slot-location {
+  font-size: 0.8em;
+  color: #eaff82;
+  display: inline-block;
+}
+
+/* Staff */
+.rbc-event .slot-staff {
+  font-size: 0.8em;
+  color: rgb(255, 255, 255);
+  display: inline-block;
 }

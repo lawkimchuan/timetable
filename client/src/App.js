@@ -9,7 +9,6 @@ import getDay from 'date-fns/getDay';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { format as dateFnsFormat } from 'date-fns';
 
-
 const DnDCalendar = withDragAndDrop(Calendar);
 
 const formats = {
@@ -41,19 +40,32 @@ function getDuration(start, end) {
     return (eh * 60 + em - sh * 60 - sm) / 60; // duration in hours
 }
 
+// Custom event component to display slot info in their own divs
 function CalendarEvent({ event }) {
     return (
-        <div style={{ display: 'flex', alignItems: 'start', justifyContent: 'space-between' }}>
-            <span>{event.title}</span>
+        <div className="slot-info" style={{ width: '100%' }}>
+            <div className="slot-task">{event.task}</div>
+            <div className="slot-duration">
+                Duration: {event.duration} hr{event.duration > 1 ? 's' : ''}
+            </div>
+            {event.location && (
+                <div className="slot-location">Location: {event.location}</div>
+            )}
+            {(event.staff1 || event.staff2) && (
+                <div className="slot-staff">
+                    Staff: {[event.staff1, event.staff2].filter(Boolean).join(', ')}
+                </div>
+            )}
             <button
                 style={{
-                    marginLeft: 8,
+                    marginTop: 4,
                     background: '#e74c3c',
                     color: 'white',
                     border: 'none',
                     borderRadius: '3px',
                     cursor: 'pointer',
-                    padding: '0 6px'
+                    padding: '0 6px',
+                    float: 'right'
                 }}
                 onClick={(e) => {
                     e.stopPropagation();
@@ -69,13 +81,14 @@ function CalendarEvent({ event }) {
 
 function App() {
     const [slots, setSlots] = useState([]);
-    const [form, setForm] = useState({ day: '', startTime: '', duration: 1, task: '', location: '' });
+    const [form, setForm] = useState({
+        day: '', startTime: '', duration: 1, task: '', location: '', staff1: '', staff2: ''
+    });
 
     useEffect(() => {
         fetch('/api/slots/')
             .then((res) => res.json())
             .then((data) => {
-                console.log('Fetched slots:', data);
                 setSlots(data);
             })
             .catch((err) => console.error('Error fetching slots:', err));
@@ -153,16 +166,16 @@ function App() {
 
         return {
             id: slot._id,
-            title: slot.location
-                ? `${slot.task} (${duration} hr${duration > 1 ? 's' : ''}) @ ${slot.location}`
-                : `${slot.task} (${duration} hr${duration > 1 ? 's' : ''})`,
+            task: slot.task,
+            duration,
+            location: slot.location,
+            staff1: slot.staff1,
+            staff2: slot.staff2,
             start,
             end,
-            onDelete: handleDelete, // Pass the handler
+            onDelete: handleDelete,
         };
     });
-
-
 
     return (
         <div className="app">
@@ -207,6 +220,20 @@ function App() {
                     onChange={handleChange}
                     required
                 />
+                <input
+                    name="staff1"
+                    placeholder="Staff 1"
+                    value={form.staff1}
+                    onChange={handleChange}
+                    required
+                />
+                <input
+                    name="staff2"
+                    placeholder="Staff 2"
+                    value={form.staff2}
+                    onChange={handleChange}
+                    required
+                />
                 <input name="task" placeholder="Task" value={form.task} onChange={handleChange} required />
                 <button type="submit">Add Slot</button>
             </form>
@@ -230,7 +257,7 @@ function App() {
                     resizable
                     formats={formats}
                     components={{
-                        event: CalendarEvent // <-- use your custom component
+                        event: CalendarEvent
                     }}
                 />
             </div>
@@ -241,6 +268,7 @@ function App() {
                         {' '}({getDuration(slot.startTime, slot.endTime)} hr{getDuration(slot.startTime, slot.endTime) > 1 ? 's' : ''})
                         {' '}→ {slot.task}
                         {slot.location && <> @ {slot.location}</>}
+                        {(slot.staff1 || slot.staff2) && <> [{slot.staff1}{slot.staff1 && slot.staff2 ? ', ' : ''}{slot.staff2}]</>}
                         <button
                             style={{ marginLeft: 10 }}
                             onClick={() => handleDelete(slot._id)}
