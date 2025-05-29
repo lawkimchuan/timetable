@@ -12,7 +12,7 @@ import { format as dateFnsFormat } from 'date-fns';
 const DnDCalendar = withDragAndDrop(Calendar);
 
 const formats = {
-    dayFormat: (date, culture, localizer) => dateFnsFormat(date, 'EEEE'), // Only weekday name
+    dayFormat: (date, culture, localizer) => dateFnsFormat(date, 'EEEE'),
 };
 
 const locales = {
@@ -26,7 +26,6 @@ const localizer = dateFnsLocalizer({
     locales,
 });
 
-// Helper to add hours to a time string (HH:mm)
 function addHoursToTime(time, hours) {
     const [h, m] = time.split(':').map(Number);
     const date = new Date(2000, 0, 1, h, m);
@@ -37,36 +36,25 @@ function addHoursToTime(time, hours) {
 function getDuration(start, end) {
     const [sh, sm] = start.split(':').map(Number);
     const [eh, em] = end.split(':').map(Number);
-    return (eh * 60 + em - sh * 60 - sm) / 60; // duration in hours
+    return (eh * 60 + em - sh * 60 - sm) / 60;
 }
 
-// Custom event component to display slot info in their own divs
 function CalendarEvent({ event }) {
     return (
         <div className="slot-info" style={{ width: '100%' }}>
             <div className="slot-task">{event.task}</div>
             <div className="slot-duration">
-                Duration: {event.duration} hr{event.duration > 1 ? 's' : ''}
+                {event.duration} hr{event.duration > 1 ? 's' : ''}
             </div>
             {event.location && (
-                <div className="slot-location">Location: {event.location}</div>
+                <div className="slot-location">{event.location}</div>
             )}
             {(event.staff1 || event.staff2) && (
                 <div className="slot-staff">
-                    Staff: {[event.staff1, event.staff2].filter(Boolean).join(', ')}
+                    {[event.staff1, event.staff2].filter(Boolean).join(', ')}
                 </div>
             )}
             <button
-                style={{
-                    marginTop: 4,
-                    background: '#e74c3c',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    cursor: 'pointer',
-                    padding: '0 6px',
-                    float: 'right'
-                }}
                 onClick={(e) => {
                     e.stopPropagation();
                     event.onDelete(event.id);
@@ -84,6 +72,7 @@ function App() {
     const [form, setForm] = useState({
         day: '', startTime: '', duration: 1, task: '', location: '', staff1: '', staff2: ''
     });
+    const [selectedLocation, setSelectedLocation] = useState('');
 
     useEffect(() => {
         fetch('/api/slots/')
@@ -141,14 +130,14 @@ function App() {
         handleEventDrop({ event, start, end });
     };
 
-    // Map slots to events for react-big-calendar
-    const referenceMonday = new Date(2020, 0, 6); // Jan 6, 2020 is a Monday
+    const referenceMonday = new Date(2020, 0, 6);
 
     const daysOfWeek = {
         Monday: 0, Tuesday: 1, Wednesday: 2, Thursday: 3,
         Friday: 4, Saturday: 5, Sunday: 6
     };
 
+    // Main calendar events
     const events = slots.map(slot => {
         const dayOffset = daysOfWeek[slot.day] ?? 0;
         const [startHour, startMinute] = slot.startTime.split(':').map(Number);
@@ -176,6 +165,40 @@ function App() {
             onDelete: handleDelete,
         };
     });
+
+    // Unique locations for selector
+    const locations = Array.from(new Set(slots.map(slot => slot.location))).filter(Boolean);
+
+    // Filtered events for selected location
+    const locationEvents = slots
+        .filter(slot => slot.location === selectedLocation)
+        .map(slot => {
+            const dayOffset = daysOfWeek[slot.day] ?? 0;
+            const [startHour, startMinute] = slot.startTime.split(':').map(Number);
+            const [endHour, endMinute] = slot.endTime.split(':').map(Number);
+
+            const start = new Date(referenceMonday);
+            start.setDate(referenceMonday.getDate() + dayOffset);
+            start.setHours(startHour, startMinute, 0, 0);
+
+            const end = new Date(referenceMonday);
+            end.setDate(referenceMonday.getDate() + dayOffset);
+            end.setHours(endHour, endMinute, 0, 0);
+
+            const duration = getDuration(slot.startTime, slot.endTime);
+
+            return {
+                id: slot._id,
+                task: slot.task,
+                duration,
+                location: slot.location,
+                staff1: slot.staff1,
+                staff2: slot.staff2,
+                start,
+                end,
+                onDelete: handleDelete,
+            };
+        });
 
     return (
         <div className="app">
@@ -213,13 +236,17 @@ function App() {
                     <option value={3}>3 hours</option>
                     <option value={4}>4 hours</option>
                 </select>
-                <input
+                <select
                     name="location"
-                    placeholder="Location"
                     value={form.location}
                     onChange={handleChange}
                     required
-                />
+                >
+                    <option value="">Select Location</option>
+                    <option value="K609">K609</option>
+                    <option value="K612">K612</option>
+                    <option value="K711">K711</option>
+                </select>
                 <input
                     name="staff1"
                     placeholder="Staff 1"
@@ -237,6 +264,25 @@ function App() {
                 <input name="task" placeholder="Task" value={form.task} onChange={handleChange} required />
                 <button type="submit">Add Slot</button>
             </form>
+
+            {/* Location selector for second calendar */}
+            <div style={{ margin: '20px 0' }}>
+                <label>
+                    <strong>View timetable for location: </strong>
+                    <select
+                        value={selectedLocation}
+                        onChange={e => setSelectedLocation(e.target.value)}
+                        style={{ marginLeft: 10 }}
+                    >
+                        <option value="">-- Select Location --</option>
+                        {locations.map(loc => (
+                            <option key={loc} value={loc}>{loc}</option>
+                        ))}
+                    </select>
+                </label>
+            </div>
+
+            {/* Main calendar */}
             <div style={{ height: 900 }}>
                 <DnDCalendar
                     localizer={localizer}
@@ -259,8 +305,40 @@ function App() {
                     components={{
                         event: CalendarEvent
                     }}
+                    showAllDayEvents={false}
                 />
             </div>
+
+            {/* Second calendar for selected location */}
+            {selectedLocation && (
+                <div style={{ height: 900, marginTop: 40, marginBottom: 100 }}>
+                    <h2>Timetable for {selectedLocation}</h2>
+                    <DnDCalendar
+                        localizer={localizer}
+                        events={locationEvents}
+                        startAccessor="start"
+                        endAccessor="end"
+                        defaultView="work_week"
+                        views={['work_week']}
+                        toolbar={false}
+                        defaultDate={referenceMonday}
+                        min={new Date(2020, 0, 6, 8, 0)}
+                        max={new Date(2020, 0, 6, 18, 0)}
+                        step={30}
+                        timeslots={1}
+                        style={{ height: '100%' }}
+                        onEventDrop={handleEventDrop}
+                        onEventResize={handleEventResize}
+                        resizable
+                        formats={formats}
+                        components={{
+                            event: CalendarEvent
+                        }}
+                        showAllDayEvents={false}
+                    />
+                </div>
+            )}
+
             <ul>
                 {slots.map((slot) => (
                     <li key={slot._id}>

@@ -1,17 +1,21 @@
+/* === App container styling === */
 .app {
   font-family: Arial, sans-serif;
   padding: 20px;
 }
 
+/* === Main heading styling === */
 h1 {
   color: #333;
 }
 
+/* === Remove default list styling for slot list === */
 ul {
   list-style-type: none;
   padding: 0;
 }
 
+/* === Style for each slot in the list === */
 li {
   margin: 8px 0;
   padding: 8px;
@@ -19,79 +23,107 @@ li {
   border-radius: 4px;
 }
 
+/* === Form input, select, and button styling === */
+.app form input,
+.app form select,
+.app form button {
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin: 0 5px 0 0;
+}
+
+/* === Remove margin from calendar event container === */
 .rbc-day-slot .rbc-events-container {
   margin: 0;
 }
 
-/* Style for calendar slot events */
+/* === Calendar slot event main styling === */
 .rbc-event {
   cursor: grab;
   font-size: 1rem;
   background: #1976d2 !important;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 2px 6px;
   border: none;
   box-shadow: 0 1px 4px rgba(25, 118, 210, 0.15);
-  display: flex;
+  /* display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; */
+  position: relative;
 }
 
-/* Style for the delete button inside the slot */
+/* === Delete button inside calendar slot event === */
 .rbc-event button {
-  margin-left: 8px;
-  background: tomato;
+  background: rgb(251, 97, 14);
   color: #fff;
   border: none;
-  border-radius: 3px;
+  border-radius: 0;
   cursor: pointer;
-  padding: 0 6px;
+  padding: 2px 6px;
   font-size: 1.1em;
   line-height: 1;
   transition: background 0.2s;
+  position: absolute;
+  top: 6px;
+  right: 2px;
 }
 
+/* === Delete button hover effect === */
 .rbc-event button:hover {
   background: #c0392b;
 }
 
-/* Slot timing */
+/* === Calendar slot time label styling === */
 .rbc-event-label {
   margin-top: 6px;
   margin-bottom: 6px;
   padding: 0 2px;
 }
-/* Style for each info div inside the calendar slot */
-.rbc-event .slot-info > div {
+
+/* === Info divs inside calendar slot event (task, duration, location, staff) === */
+.rbc-event .slot-task,
+.rbc-event .slot-duration,
+.rbc-event .slot-location,
+.rbc-event .slot-staff {
+  display: inline-block;
   margin-bottom: 6px;
   padding: 0 2px;
+  position: relative;
 }
 
-/* Task/title */
+/* === Task/title styling in slot === */
 .rbc-event .slot-task {
   font-weight: 600;
   font-size: 1.4em;
-  color: #ffffff;
-  display: inline-block;
+  color: #fff;
 }
 
-/* Duration */
+/* === Duration styling in slot === */
 .rbc-event .slot-duration {
-  font-size: 0.8em;
-  color: #ffd500;
-  display: inline-block;
+  font-size: 1em;
+  color: #fff;
 }
 
-/* Location */
+/* === Location styling in slot === */
 .rbc-event .slot-location {
-  font-size: 0.8em;
-  color: #eaff82;
-  display: inline-block;
+  font-size: 1em;
+  color: yellow;
 }
 
-/* Staff */
+/* === Staff styling in slot === */
 .rbc-event .slot-staff {
   font-size: 0.8em;
-  color: rgb(255, 255, 255);
-  display: inline-block;
+  color: #fff;
+}
+
+/* Hide the all-day row in react-big-calendar */
+.rbc-allday-cell,
+.rbc-allday-events,
+.rbc-row.rbc-allday-row {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  max-height: 0 !important;
+  padding: 0 !important;
+  border: none !important;
 }
